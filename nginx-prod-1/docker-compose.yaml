@@ -1,0 +1,18 @@
+---
+services:
+  nginx:
+    container_name: nginx-prod-1
+    image: nginx:1.27.2-alpine
+    restart: unless-stopped
+    network_mode: host 
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.nginx-https.tls=true
+      - traefik.http.routers.nginx-https.tls.certresolver=cloudflare
+      - traefik.http.routers.nginx-https.entrypoints=websecure
+      - traefik.http.routers.nginx-https.rule=Host(`srv-prod-1.home.ragekuuhaku.cloud`)
+    volumes:
+      - ./config:/etc/nginx/conf.d:ro
+      - ./data:/usr/share/nginx/html
+    environment:
+      - VIRTUAL_HOST=srv-prod-1.home.ragekuuhaku.cloud

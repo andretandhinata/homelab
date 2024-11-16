@@ -1,0 +1,12 @@
+- hosts: "{{ hosts }}"
+
+  tasks:
+    - name: Send Discord message
+      uri:
+        url: "{{ discord_webhook_url }}"
+        method: POST
+        body_format: json
+        body: '{"content": "Reboot required on my server"}'
+        headers:
+          Content-Type: application/json
+        status_code: 204

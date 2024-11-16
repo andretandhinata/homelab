@@ -1,0 +1,24 @@
+http:
+  routers:
+    webmin-prod-1-https:
+      entryPoints:
+      - websecure
+      rule: Host(`srv-prod-1.home.ragekuuhaku.cloud`)
+      tls:
+        certResolver: cloudflare
+      service: webmin-prod-1
+      middlewares:
+      - webmin-prod-1-redirectscheme
+  
+  services:
+    webmin-prod-1:
+      loadBalancer:
+        servers:
+        - url: "http://192.168.135.2:10000"
+  
+
+  middlewares:
+    webmin-prod-1-redirectscheme:
+      redirectScheme:
+        scheme: https
+        permanent: true

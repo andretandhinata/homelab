@@ -1,0 +1,45 @@
+---
+networks:
+  frontend:
+    external: true
+volumes:
+  kestra-data:
+    driver: local
+services:
+  kestra:
+    image: kestra/kestra:v0.19.9
+    container_name: kestra-prod-1
+    entrypoint: /bin/bash
+    user: "root"
+    command:
+      - -c
+      - /app/kestra server standalone --worker-thread=128 -c config.yaml
+    volumes:
+      - kestra-data:/app/storage
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp/kestra-wd:/tmp/kestra-wd
+      - ./config/config.yaml:/app/config.yaml:ro
+      - ./scripts:/app/scripts
+    environment:
+      # - SECRET_DOCKERHUB_USERNAME=${SECRET_DOCKERHUB_USERNAME}
+      # - SECRET_DOCKERHUB_PASSWORD=${SECRET_DOCKERHUB_PASSWORD}
+      - SECRET_GITHUB_ACCESS_TOKEN=${SECRET_GITHUB_ACCESS_TOKEN}
+      # - SECRET_PATREON_TOKEN=${SECRET_PATREON_TOKEN}
+      # - SECRET_TERRAFORM_TOKEN=${SECRET_TERRAFORM_TOKEN}
+      - SECRET_TSIG_KEY_HOME=${SECRET_TSIG_KEY_HOME}
+      - SECRET_SSH_KEY=${SECRET_SSH_KEY}
+      - SECRET_DISCORD_WEBHOOK_ID=${SECRET_DISCORD_WEBHOOK_ID}
+      - SECRET_DISCORD_WEBHOOK_TOKEN=${SECRET_DISCORD_WEBHOOK_TOKEN}
+      # - SECRET_1PASS_INFRA_PROD_TOKEN=${SECRET_1PASS_INFRA_PROD_TOKEN}
+    networks:
+      - frontend
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.kestra-prod-1-https.rule=Host(`kestra-prod-1.srv-prod-1.home.ragekuuhaku.cloud`)
+      - traefik.http.routers.kestra-prod-1-https.entrypoints=websecure
+      - traefik.http.routers.kestra-prod-1-https.tls=true
+      - traefik.http.routers.kestra-prod-1-https.tls.certresolver=cloudflare
+      - traefik.http.routers.kestra-prod-1-https.middlewares=authentik-prod-1-middleware@file
+      - traefik.http.routers.kestra-prod-1-https.service=kestra-prod-1
+      - traefik.http.services.kestra-prod-1.loadBalancer.server.port=8080
+    restart: unless-stopped
