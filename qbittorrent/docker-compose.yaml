@@ -1,0 +1,41 @@
+---
+networks:
+  frontend:
+    external: true
+
+volumes:
+  downloads:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=nas-prod-1.home.ragekuuhaku.cloud,rw,vers=4.2
+      device: ":/mnt/nas/data/app-pv/downloads"
+
+services:
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent-prod-1
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Makassar
+      - WEBUI_PORT=8080
+      - TORRENTING_PORT=6881
+    volumes:
+      - ./appdata:/config
+      - downloads:/downloads
+    ports:
+      - 6881:6881
+      - 6881:6881/udp
+    networks:
+      - frontend
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.qbittorrent-prod-1-https.entrypoints=websecure
+      - traefik.http.routers.qbittorrent-prod-1-https.rule=Host(`qbittorrent-prod-1.srv-prod-1.home.ragekuuhaku.cloud`)
+      - traefik.http.routers.qbittorrent-prod-1-https.tls=true
+      - traefik.http.routers.qbittorrent-prod-1-https.tls.certresolver=cloudflare
+      - traefik.http.routers.qbittorrent-prod-1-https.service=qbittorrent-prod-1
+      - traefik.http.services.qbittorrent-prod-1.loadbalancer.server.port=8080
+      - traefik.http.services.qbittorrent-prod-1.loadbalancer.server.scheme=http
+    restart: unless-stopped

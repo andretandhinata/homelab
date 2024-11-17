@@ -1,0 +1,117 @@
+---
+networks:
+  frontend:
+    external: true
+  backend:
+    external: true
+
+volumes:
+  movies:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=nas-prod-1.home.ragekuuhaku.cloud,rw,vers=4.2
+      device: ":/mnt/nas/data/app-pv/movies"
+  tvseries:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=nas-prod-1.home.ragekuuhaku.cloud,rw,vers=4.2
+      device: ":/mnt/nas/data/app-pv/tvseries"
+  downloads:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=nas-prod-1.home.ragekuuhaku.cloud,rw,vers=4.2
+      device: ":/mnt/nas/data/app-pv/downloads"
+
+services:
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr-prod-1
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Makassar
+    volumes:
+      - ./prowlarr/data:/config
+    networks:
+      - frontend
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.prowlarr-prod-1-https.entrypoints=websecure
+      - traefik.http.routers.prowlarr-prod-1-https.rule=Host(`prowlarr-prod-1.srv-prod-1.home.ragekuuhaku.cloud`)
+      - traefik.http.routers.prowlarr-prod-1-https.tls=true
+      - traefik.http.routers.prowlarr-prod-1-https.tls.certresolver=cloudflare
+      - traefik.http.services.prowlarr-prod-1-svc.loadbalancer.server.port=9696
+      - traefik.http.services.prowlarr-prod-1-svc.loadbalancer.server.scheme=http
+    restart: unless-stopped
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr-prod-1
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Makassar
+    volumes:
+      - ./radarr/data:/config
+      - movies:/movies
+      - downloads:/downloads
+    networks:
+      - frontend
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.radarr-prod-1-https.entrypoints=websecure
+      - traefik.http.routers.radarr-prod-1-https.rule=Host(`radarr-prod-1.srv-prod-1.home.ragekuuhaku.cloud`)
+      - traefik.http.routers.radarr-prod-1-https.tls=true
+      - traefik.http.routers.radarr-prod-1-https.tls.certresolver=cloudflare
+      - traefik.http.services.radarr-prod-1-svc.loadbalancer.server.port=7878
+      - traefik.http.services.radarr-prod-1-svc.loadbalancer.server.scheme=http
+    restart: unless-stopped
+
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr-prod-1
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Makassar
+    volumes:
+      - ./sonarr/data:/config
+      - tvseries:/tv
+      - downloads:/downloads
+    networks:
+      - frontend
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.sonarr-prod-1-https.entrypoints=websecure
+      - traefik.http.routers.sonarr-prod-1-https.rule=Host(`sonarr-prod-1.srv-prod-1.home.ragekuuhaku.cloud`)
+      - traefik.http.routers.sonarr-prod-1-https.tls=true
+      - traefik.http.routers.sonarr-prod-1-https.tls.certresolver=cloudflare
+      - traefik.http.services.sonarr-prod-1-svc.loadbalancer.server.port=8989
+      - traefik.http.services.sonarr-prod-1-svc.loadbalancer.server.scheme=http
+    restart: unless-stopped
+
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr-prod-1
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Makassar
+    volumes:
+      - ./bazarr/config:/config
+      - movies:/movies
+      - tvseries:/tv
+    networks:
+      - frontend
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.bazarr-prod-1-https.entrypoints=websecure
+      - traefik.http.routers.bazarr-prod-1-https.rule=Host(`bazarr-prod-1.srv-prod-1.home.ragekuuhaku.cloud`)
+      - traefik.http.routers.bazarr-prod-1-https.tls=true
+      - traefik.http.routers.bazarr-prod-1-https.tls.certresolver=cloudflare
+      - traefik.http.services.bazarr-prod-1-svc.loadbalancer.server.port=6767
+      - traefik.http.services.bazarr-prod-1-svc.loadbalancer.server.scheme=http
+    restart: unless-stopped
