@@ -8,9 +8,6 @@ on:
       - "nginx/docker-compose.yaml"
   workflow_dispatch:
 
-env:
-  SSH_KEY: ${{ secrets.SSH_KEY }}
-
 jobs:
   deploy:
     runs-on: "self-hosted"
@@ -20,7 +17,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Upload new docker compose file
-        uses: appleboy/scp-action@v0.1.7
+        uses: appleboy/scp-action@master
         with:
           username: riot
           host: srv-prod-1.home.ragekuuhaku.cloud
@@ -28,3 +25,13 @@ jobs:
           source: "nginx/docker-compose.yaml"
           target: "/home/riot/docker/nginx/"
           strip_components: 1
+
+      - name: Restart docker container
+        uses: fifsky/ssh-action@master
+        with:
+          user: riot
+          host: srv-prod-1.home.ragekuuhaku.cloud
+          key: ${{ secrets.SSH_KEY }}
+          command: |
+            cd docker/nginx
+            docker compose up -d --force-recreate
