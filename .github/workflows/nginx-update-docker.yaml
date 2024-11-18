@@ -8,6 +8,9 @@ on:
       - "nginx/docker-compose.yaml"
   workflow_dispatch:
 
+env:
+  SSH_KEY: ${{ secrets.SSH_KEY }}
+
 jobs:
   deploy:
     runs-on: "self-hosted"
