@@ -5,29 +5,29 @@ networks:
   backend:
     external: true
 
-volumes:
-  movies:
-    driver: local
-    driver_opts:
-      type: nfs
-      o: addr=nas-prod-1.home.ragekuuhaku.cloud,rw,vers=4.2
-      device: ":/mnt/nas/data/app-pv/movies"
-  tvseries:
-    driver: local
-    driver_opts:
-      type: nfs
-      o: addr=nas-prod-1.home.ragekuuhaku.cloud,rw,vers=4.2
-      device: ":/mnt/nas/data/app-pv/tvseries"
-  downloads:
-    driver: local
-    driver_opts:
-      type: nfs
-      o: addr=nas-prod-1.home.ragekuuhaku.cloud,rw,vers=4.2
-      device: ":/mnt/nas/data/app-pv/downloads"
+# volumes:
+#   movies:
+#     driver: local
+#     driver_opts:
+#       type: nfs
+#       o: addr=nas-prod-1.home.ragekuuhaku.cloud,rw,vers=4.2
+#       device: ":/mnt/nas/data/app-pv/movies"
+#   tvseries:
+#     driver: local
+#     driver_opts:
+#       type: nfs
+#       o: addr=nas-prod-1.home.ragekuuhaku.cloud,rw,vers=4.2
+#       device: ":/mnt/nas/data/app-pv/tvseries"
+#   downloads:
+#     driver: local
+#     driver_opts:
+#       type: nfs
+#       o: addr=nas-prod-1.home.ragekuuhaku.cloud,rw,vers=4.2
+#       device: ":/mnt/nas/data/app-pv/downloads"
 
 services:
   prowlarr:
-    image: lscr.io/linuxserver/prowlarr:latest
+    image: lscr.io/linuxserver/prowlarr:1.25.4
     container_name: prowlarr-prod-1
     environment:
       - PUID=1000
@@ -43,12 +43,12 @@ services:
       - traefik.http.routers.prowlarr-prod-1-https.rule=Host(`prowlarr-prod-1.srv-prod-1.home.ragekuuhaku.cloud`)
       - traefik.http.routers.prowlarr-prod-1-https.tls=true
       - traefik.http.routers.prowlarr-prod-1-https.tls.certresolver=cloudflare
-      - traefik.http.services.prowlarr-prod-1-svc.loadbalancer.server.port=9696
-      - traefik.http.services.prowlarr-prod-1-svc.loadbalancer.server.scheme=http
+      - traefik.http.services.prowlarr-prod-1.loadbalancer.server.port=9696
+      - traefik.http.services.prowlarr-prod-1.loadbalancer.server.scheme=http
     restart: unless-stopped
 
   radarr:
-    image: lscr.io/linuxserver/radarr:latest
+    image: lscr.io/linuxserver/radarr:5.14.0
     container_name: radarr-prod-1
     environment:
       - PUID=1000
@@ -56,8 +56,8 @@ services:
       - TZ=Asia/Makassar
     volumes:
       - ./radarr/data:/config
-      - movies:/movies
-      - downloads:/downloads
+      - /mnt/data/app-pv/movies:/movies
+      - /mnt/data/app-pv/downloads:/downloads
     networks:
       - frontend
     labels:
@@ -66,12 +66,12 @@ services:
       - traefik.http.routers.radarr-prod-1-https.rule=Host(`radarr-prod-1.srv-prod-1.home.ragekuuhaku.cloud`)
       - traefik.http.routers.radarr-prod-1-https.tls=true
       - traefik.http.routers.radarr-prod-1-https.tls.certresolver=cloudflare
-      - traefik.http.services.radarr-prod-1-svc.loadbalancer.server.port=7878
-      - traefik.http.services.radarr-prod-1-svc.loadbalancer.server.scheme=http
+      - traefik.http.services.radarr-prod-1.loadbalancer.server.port=7878
+      - traefik.http.services.radarr-prod-1.loadbalancer.server.scheme=http
     restart: unless-stopped
 
   sonarr:
-    image: lscr.io/linuxserver/sonarr:latest
+    image: lscr.io/linuxserver/sonarr:4.0.10
     container_name: sonarr-prod-1
     environment:
       - PUID=1000
@@ -79,8 +79,8 @@ services:
       - TZ=Asia/Makassar
     volumes:
       - ./sonarr/data:/config
-      - tvseries:/tv
-      - downloads:/downloads
+      - /mnt/data/app-pv/tvseries:/tv
+      - /mnt/data/app-pv/downloads:/downloads
     networks:
       - frontend
     labels:
@@ -89,12 +89,12 @@ services:
       - traefik.http.routers.sonarr-prod-1-https.rule=Host(`sonarr-prod-1.srv-prod-1.home.ragekuuhaku.cloud`)
       - traefik.http.routers.sonarr-prod-1-https.tls=true
       - traefik.http.routers.sonarr-prod-1-https.tls.certresolver=cloudflare
-      - traefik.http.services.sonarr-prod-1-svc.loadbalancer.server.port=8989
-      - traefik.http.services.sonarr-prod-1-svc.loadbalancer.server.scheme=http
+      - traefik.http.services.sonarr-prod-1.loadbalancer.server.port=8989
+      - traefik.http.services.sonarr-prod-1.loadbalancer.server.scheme=http
     restart: unless-stopped
 
   bazarr:
-    image: lscr.io/linuxserver/bazarr:latest
+    image: lscr.io/linuxserver/bazarr:1.4.5
     container_name: bazarr-prod-1
     environment:
       - PUID=1000
@@ -102,8 +102,8 @@ services:
       - TZ=Asia/Makassar
     volumes:
       - ./bazarr/config:/config
-      - movies:/movies
-      - tvseries:/tv
+      - /mnt/data/app-pv/movies:/movies
+      - /mnt/data/app-pv/tvseries:/tv
     networks:
       - frontend
     labels:
@@ -112,6 +112,6 @@ services:
       - traefik.http.routers.bazarr-prod-1-https.rule=Host(`bazarr-prod-1.srv-prod-1.home.ragekuuhaku.cloud`)
       - traefik.http.routers.bazarr-prod-1-https.tls=true
       - traefik.http.routers.bazarr-prod-1-https.tls.certresolver=cloudflare
-      - traefik.http.services.bazarr-prod-1-svc.loadbalancer.server.port=6767
-      - traefik.http.services.bazarr-prod-1-svc.loadbalancer.server.scheme=http
+      - traefik.http.services.bazarr-prod-1.loadbalancer.server.port=6767
+      - traefik.http.services.bazarr-prod-1.loadbalancer.server.scheme=http
     restart: unless-stopped
