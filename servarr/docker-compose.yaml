@@ -34,7 +34,7 @@ services:
       - PGID=1000
       - TZ=Asia/Makassar
     volumes:
-      - ./prowlarr/data:/config
+      - ./prowlarr/config:/config
     networks:
       - frontend
     labels:
@@ -55,7 +55,7 @@ services:
       - PGID=1000
       - TZ=Asia/Makassar
     volumes:
-      - ./radarr/data:/config
+      - ./radarr/config:/config
       - /mnt/data/app-pv/movies:/movies
       - /mnt/data/app-pv/downloads:/downloads
     networks:
@@ -78,7 +78,7 @@ services:
       - PGID=1000
       - TZ=Asia/Makassar
     volumes:
-      - ./sonarr/data:/config
+      - ./sonarr/config:/config
       - /mnt/data/app-pv/tvseries:/tv
       - /mnt/data/app-pv/downloads:/downloads
     networks:
