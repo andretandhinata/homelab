@@ -3,13 +3,13 @@ networks:
   frontend:
     external: true
 
-volumes:
-  downloads:
-    driver: local
-    driver_opts:
-      type: nfs
-      o: addr=nas-prod-1.home.ragekuuhaku.cloud,rw,vers=4.2
-      device: ":/mnt/nas/data/app-pv/downloads"
+# volumes:
+#   downloads:
+#     driver: local
+#     driver_opts:
+#       type: nfs
+#       o: addr=nas-prod-1.home.ragekuuhaku.cloud,rw,vers=4.2
+#       device: ":/mnt/nas/data/app-pv/downloads"
 
 services:
   qbittorrent:
@@ -23,10 +23,7 @@ services:
       - TORRENTING_PORT=6881
     volumes:
       - ./appdata:/config
-      - downloads:/downloads
-    ports:
-      - 6881:6881
-      - 6881:6881/udp
+      - /mnt/data/app-pv/downloads:/downloads
     networks:
       - frontend
     labels:
